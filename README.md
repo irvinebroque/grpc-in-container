@@ -99,7 +99,3 @@ handler in this demo. The point is to show the customer shape as connect-only:
 incoming bytes enter through `connect`, cross the Durable Object through
 `connect`, and reach the container through the raw TCP port opened from
 `this.ctx.container`.
-
-The Worker and Durable Object do not "pass" a socket object along. The runtime
-socket API exposes a `readable` side and a `writable` side, so each hop connects
-the two sockets by piping both stream directions.
