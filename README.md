@@ -30,7 +30,6 @@ Status as of June 24, 2026:
 
 | Status | Surface | What this demo assumes |
 | --- | --- | --- |
-| Works today, documented | Container gRPC process | The Node `@grpc/grpc-js` server and client work in isolation. This proves the app inside the container can accept a bidi stream and send bytes back. |
 | Works today, documented | Low-level Durable Object Container API | Public docs describe `this.ctx.container`, `start(...)`, `running`, and `getTcpPort(port).connect(...)`. This demo uses that API directly instead of `@cloudflare/containers`. |
 | Works today, documented | Worker TCP `Socket` shape | Public docs describe sockets with `readable`, `writable`, `opened`, `closed`, and `close()`. The current primitive for proxying is to pipe both stream directions. |
 | Runtime-supported in `workerd` | Worker `export default { connect(socket) }` | `workerd` generated types and tests include a connect handler, and local `workerd` configs can route TCP listeners to it. This is the Worker entrypoint this demo is designed around. |
