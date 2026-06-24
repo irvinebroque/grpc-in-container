@@ -1,0 +1,14 @@
+{
+  "name": "grpc-byte-stream-container",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal gRPC bidirectional byte-stream server for the Cloudflare Containers demo.",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "1.14.4",
+    "@grpc/proto-loader": "0.8.1"
+  }
+}

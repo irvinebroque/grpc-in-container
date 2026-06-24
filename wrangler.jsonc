@@ -13,6 +13,30 @@
 	"upload_source_maps": true,
 	"compatibility_flags": [
 		"nodejs_compat"
+	],
+	"containers": [
+		{
+			"class_name": "GrpcContainer",
+			"image": "./Dockerfile",
+			"max_instances": 1,
+			"instance_type": "lite"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "GRPC_CONTAINER",
+				"class_name": "GrpcContainer"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"GrpcContainer"
+			]
+		}
 	]
 	/**
 	 * Smart Placement
