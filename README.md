@@ -12,11 +12,17 @@ The shape is:
    with `this.ctx.container.getTcpPort(50051).connect(...)`.
 5. The container runs a minimal Node gRPC server with a bidi `Chat` stream.
 
-The current public Workers protocol docs still describe inbound direct TCP as
-"coming soon", so the `connect(socket)` handler is the intended front door for
-the platform gap this demo is meant to highlight. The container-side API is the
-low-level Durable Object container API, not the high-level
-`@cloudflare/containers` `Container` class.
+The key point this demo is meant to show is that the Workers runtime already has
+the pieces needed for this shape: a socket-based `connect` handler, socket-based
+service binding calls, Durable Object `connect`, and a low-level Container TCP
+port API. Some of those pieces are visible in `workerd` today but are not yet
+documented as public Cloudflare platform APIs.
+
+The remaining platform question is how customers open an inbound raw TCP stream
+to a deployed Worker. Public Workers protocol docs still describe inbound direct
+TCP as "coming soon". The container-side API used here is the low-level Durable
+Object container API, not the high-level `@cloudflare/containers` `Container`
+class.
 
 ## Reality check
 
@@ -27,11 +33,9 @@ Status as of June 24, 2026:
 | Works today, documented | Container gRPC process | The Node `@grpc/grpc-js` server and client work in isolation. This proves the app inside the container can accept a bidi stream and send bytes back. |
 | Works today, documented | Low-level Durable Object Container API | Public docs describe `this.ctx.container`, `start(...)`, `running`, and `getTcpPort(port).connect(...)`. This demo uses that API directly instead of `@cloudflare/containers`. |
 | Works today, documented | Worker TCP `Socket` shape | Public docs describe sockets with `readable`, `writable`, `opened`, `closed`, and `close()`. The current primitive for proxying is to pipe both stream directions. |
-| Present in `workerd`, not public ingress | Worker `export default { connect(socket) }` | `workerd` generated types and tests include a connect handler, and local `workerd` configs can route TCP listeners to it. Public Cloudflare Workers docs still say inbound direct TCP support is coming soon. |
-| Present in `workerd`, not public DO docs | `DurableObject.connect(socket)` and `stub.connect(...)` | `workerd` generated types expose `DurableObject.connect`, and `Fetcher.connect(...)` is present on service bindings/stubs. Public Durable Object Stub docs currently describe RPC methods and stub properties, not a raw socket `connect` path. |
-| Gap today | Public client TCP to deployed Worker | There is no documented public Cloudflare Worker ingress that lets an arbitrary client open a raw TCP socket to the Worker today. HTTP `CONNECT` is also not accepted as a normal Workers request method. |
-| Gap today | Runtime socket handoff/splice API | There is no documented single-call API to pass one socket through to another. The readable side of each socket must be piped to the writable side of the other socket. |
-| Gap in this minimal demo | Container readiness | `this.ctx.container.start(...)` starts the container but does not wait for the gRPC port to be ready. A production version would add readiness/retry logic or use the higher-level `Container` class. |
+| Runtime-supported in `workerd` | Worker `export default { connect(socket) }` | `workerd` generated types and tests include a connect handler, and local `workerd` configs can route TCP listeners to it. This is the Worker entrypoint this demo is designed around. |
+| Runtime-supported in `workerd` | `DurableObject.connect(socket)` and `stub.connect(...)` | `workerd` generated types expose `DurableObject.connect`, and `Fetcher.connect(...)` is present on service bindings/stubs. Public Durable Object Stub docs currently describe RPC methods and stub properties, not a raw socket `connect` path. |
+| Product/docs gap | Public client TCP to deployed Worker | Public Cloudflare Workers docs still say inbound direct TCP support is coming soon, so the deployed-product ingress story is the part this demo is meant to make concrete. |
 
 This repository intentionally keeps the future-facing code in place because the
 goal is to show the desired customer shape and make the missing platform pieces
