@@ -14,9 +14,6 @@ export class GrpcContainer extends DurableObject<Env> {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
 
-		// Documented today: a container-bound Durable Object can start its
-		// container through this.ctx.container. start() does not wait for the
-		// gRPC process to accept connections.
 		this.ctx.container!.start({
 			enableInternet: false,
 			env: {
@@ -45,11 +42,11 @@ export class GrpcContainer extends DurableObject<Env> {
 }
 
 export default {
+	// FUTURE / public-product gap: workerd-generated types expose an
+	// ExportedHandler.connect handler, and workerd tests can route local TCP
+	// sockets into it. Public Cloudflare Workers docs still say inbound
+	// direct TCP support is coming soon.
 	async connect(socket, env): Promise<void> {
-		// FUTURE / public-product gap: workerd-generated types expose an
-		// ExportedHandler.connect handler, and workerd tests can route local TCP
-		// sockets into it. Public Cloudflare Workers docs still say inbound
-		// direct TCP support is coming soon.
 		const container = env.GRPC_CONTAINER.getByName(CONTAINER_INSTANCE);
 
 		// Workerd source, not public DO docs: DurableObjectStub inherits
