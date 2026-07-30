@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev": "WRANGLER_UNSAFE_TCP_PORT=50051 node ../workers-sdk/packages/wrangler/bin/wrangler.js dev",
+    "start": "npm run dev",
     "test": "vitest",
     "cf-typegen": "wrangler types"
   },

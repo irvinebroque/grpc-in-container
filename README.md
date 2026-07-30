@@ -89,13 +89,32 @@ send a final goodbye.
 
 ## Worker and container development
 
+This demo currently uses the sibling `../workers-sdk` checkout, patched to let
+Miniflare expose an experimental raw TCP listener. Build that Wrangler checkout
+once:
+
+```sh
+pnpm --dir ../workers-sdk turbo build --filter=wrangler...
+```
+
+Then start the Worker, its Durable Object, and the container:
+
 ```sh
 npm run dev
 ```
 
-Wrangler will build the Dockerfile and start container instances when the Worker
-routes traffic to them. For local development, the Dockerfile must expose the
-gRPC port, which this demo does with `EXPOSE 50051`.
+In another terminal, send a gRPC stream to Miniflare's TCP listener:
+
+```sh
+npm --prefix container run client -- localhost:50051
+```
+
+The Wrangler terminal logs `Worker received TCP connection` followed by
+`Durable Object received TCP connection`. The client then receives the server
+hello, two echoes, and the final goodbye. Wrangler builds the Dockerfile and
+starts the container when the Worker routes the first connection to it. For
+local development, the Dockerfile must expose the gRPC port, which this demo
+does with `EXPOSE 50051`.
 
 There is intentionally no Worker `fetch` handler and no Durable Object `fetch`
 handler in this demo. The point is to show the customer shape as connect-only:
