@@ -3,8 +3,18 @@ const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 
 const target = process.argv[2] || "localhost:50051";
+const messageCount = Number.parseInt(process.argv[3] || "8", 10);
+const messageIntervalMs = Number.parseInt(process.argv[4] || "400", 10);
 const protoPath =
 	process.env.PROTO_PATH || path.resolve(__dirname, "../proto/bytes.proto");
+
+if (!Number.isInteger(messageCount) || messageCount < 1) {
+	throw new Error("message count must be a positive integer");
+}
+
+if (!Number.isInteger(messageIntervalMs) || messageIntervalMs < 0) {
+	throw new Error("message interval must be a non-negative integer");
+}
 
 const definition = protoLoader.loadSync(protoPath, {
 	keepCase: true,
@@ -19,16 +29,21 @@ const client = new proto.ByteStream(
 	grpc.credentials.createInsecure(),
 );
 const call = client.Chat();
+const startedAt = Date.now();
+
+function elapsed() {
+	return `${String(Date.now() - startedAt).padStart(4, " ")}ms`;
+}
 
 call.on("data", (chunk) => {
 	const payload = Buffer.isBuffer(chunk.payload)
 		? chunk.payload
 		: Buffer.from(chunk.payload || "");
-	process.stdout.write(payload);
+	console.log(`[${elapsed()}] server -> client: ${payload.toString().trimEnd()}`);
 });
 
 call.on("end", () => {
-	console.log("stream ended");
+	console.log(`[${elapsed()}] server ended the response stream`);
 });
 
 call.on("error", (error) => {
@@ -36,8 +51,26 @@ call.on("error", (error) => {
 	process.exitCode = 1;
 });
 
-for (const message of ["client says hello\n", "client streams bytes\n"]) {
+let sent = 0;
+let timer;
+
+function sendNext() {
+	sent += 1;
+	const message = `streaming message ${sent}/${messageCount}\n`;
+
+	console.log(`[${elapsed()}] client -> server: ${message.trimEnd()}`);
 	call.write({ payload: Buffer.from(message) });
+
+	if (sent === messageCount) {
+		if (timer) {
+			clearInterval(timer);
+		}
+		console.log(`[${elapsed()}] client half-closes its request stream`);
+		call.end();
+	}
 }
 
-call.end();
+sendNext();
+if (sent < messageCount) {
+	timer = setInterval(sendNext, messageIntervalMs);
+}

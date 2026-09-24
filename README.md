@@ -103,10 +103,12 @@ Then start the Worker, its Durable Object, and the container:
 npm run dev
 ```
 
-In another terminal, send a gRPC stream to Miniflare's TCP listener:
+Wrangler serves HTTP on its normal development port (`8787` by default) and
+raw TCP on the following port (`8788` by default). In another terminal, send a
+gRPC stream to the TCP listener:
 
 ```sh
-npm --prefix container run client -- localhost:50051
+npm --prefix container run client -- localhost:8788
 ```
 
 The Wrangler terminal logs `Worker received TCP connection` followed by
